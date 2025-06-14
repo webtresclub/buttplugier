@@ -20,6 +20,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      - name: Use npm 11 (fix optional-deps bug)
+        run: npm install -g npm@11.3.0   # any ≥ 11.3 works
+  
       # 1) Get the source
       - name: Checkout
         uses: actions/checkout@v4
