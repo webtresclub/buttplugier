@@ -24,10 +24,8 @@ export class Game extends Scene {
 
         this.physics.add.collider(this.player, line);
     }
-    create() {
-        window.obstacles = obstacles;
-        window.showMap = () => {
-            let _map = [];
+    getMap(){
+        let _map = [];
             Object.keys(obstacles).forEach(row => {
                 Object.keys(obstacles[row] || {}).forEach(col => {
                     if(obstacles[row][col]){
@@ -35,8 +33,14 @@ export class Game extends Scene {
                     }
                 });
             });
-            console.log(JSON.stringify(_map));
+        return _map;
+    }
+    create() {
+        window.obstacles = obstacles;
+        window.showMap = () => {
+            console.log(JSON.stringify(this.getMap()));
         }
+        
         this.soundPlayed = false;
         this.sound.setVolume(0);
         this.graphics = this.add.graphics();
@@ -171,6 +175,17 @@ export class Game extends Scene {
 
 
         this.input.on('pointerdown', this.onPointerDown, this);
+
+        this.map = JSON.parse(localStorage.getItem('map') || '[]');
+        this.map.forEach(item => {
+            const [row, col] = item.split('-').map(Number);
+            if(!obstacles[row]){
+                obstacles[row] = {};
+            }
+            obstacles[row][col] = this.cubes.get(col * 20, row * 20, 'cube');
+            obstacles[row][col].setActive(true).setVisible(true);
+            obstacles[row][col].refreshBody();
+        });
 
     }
 
@@ -470,6 +485,7 @@ export class Game extends Scene {
       cube.refreshBody();                            // ← importante, staticGroup
       obstacles[row][col] = cube;
     }
+    localStorage.setItem('map', JSON.stringify(this.getMap()));
   }
 
 }
