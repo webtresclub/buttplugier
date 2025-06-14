@@ -1,0 +1,58 @@
+# .github/workflows/pages.yml
+name: Build & Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]      # default branch
+  workflow_dispatch:        # manual trigger from Actions tab
+
+permissions:
+  contents: read            # repo checkout
+  pages: write              # upload & deploy
+  id-token: write           # OIDC for Pages
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Get the source
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2) Install & cache Node modules
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20           # or 18, 22, …
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci                  # reproducible install
+
+      # 3) Build the static site
+      - name: Build
+        run: npm run build           # produces ./dist (example)
+
+      # 4) Configure GitHub Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # 5) Upload only the build output
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist               # ← change if your folder is different
+
+      # 6) Publish
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
